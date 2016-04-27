@@ -1,0 +1,523 @@
+{
+  "Parameters": {
+    "CoreAmiId": {
+      "Default": "ami-2bf21344",
+      "Description": "Docker-AMI, which contains docker, docker-compose, docker-machine",
+      "Type": "String"
+    },
+    "KeyName": {
+      "Default": "",
+      "Description": "Key pair name for SSH",
+      "Type": "String"
+    },
+    "AWSAccessKeyID": {
+      "Default": "",
+      "Description": "AWS Access Key ID",
+      "Type": "String"
+    },
+    "AWSSecretAccessKey": {
+      "Default": "",
+      "Description": "Secret Access Key",
+      "Type": "String"
+    },
+    "DeploymentScriptURL": {
+      "Default": "https://s3.eu-central-1.amazonaws.com/adexchange/create-hosts.sh",
+      "Description": "URL of the deployment Script",
+      "Type": "String"
+    },
+    "SwarmNodesAmount": {
+      "Default": "3",
+      "Description": "How many Docker Swarm nodes to create",
+      "Type": "String"
+    },
+    "DockerMachineInstanceType": {
+      "Default": "t2.micro",
+      "Description": "Docker Machine host instance type",
+      "Type": "String"
+    },
+    "NginxInstanceType": {
+      "Default": "t2.micro",
+      "Description": "Nginx host instance type",
+      "Type": "String"
+    },
+    "SwarmMasterInstanceType": {
+      "Default": "t2.micro",
+      "Description": "Swarm Master host instance type",
+      "Type": "String"
+    },
+    "SwarmNodesInstanceType": {
+      "Default": "t2.micro",
+      "Description": "Swarm Nodes hosts instance type",
+      "Type": "String"
+    },
+    "ConsulInstanceType": {
+      "Default": "t2.micro",
+      "Description": "Consul host instance type",
+      "Type": "String"
+    },
+    "RegistryInstanceType": {
+      "Default": "t2.micro",
+      "Description": "Docker Registry host instance type",
+      "Type": "String"
+    },
+    "AppInstances": {
+      "Default": "6",
+      "Description": "How mush upstream instances spin up in Swarm",
+      "Type": "String"
+    },
+    "DistributionURL": {
+      "Default": "s3://adexchange/adexchange.tar.gz",
+      "Description": "URL to download distributive from",
+      "Type": "String"
+    }
+  },
+  "Mappings": {
+    "SubnetConfig": {
+      "VPC": {
+        "CIDR": "10.44.0.0/16"
+      },
+      "Public": {
+        "CIDR": "10.44.0.0/24"
+      },
+      "Private": {
+        "CIDR": "10.44.1.0/24"
+      }
+    }
+  },
+  "Resources": {
+    "VPC": {
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+        "CidrBlock": {
+          "Fn::FindInMap": [
+            "SubnetConfig",
+            "VPC",
+            "CIDR"
+          ]
+        },
+        "EnableDnsSupport": "true",
+        "EnableDnsHostnames": "true",
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": {
+              "Ref": "AWS::StackName"
+            }
+          },
+          {
+            "Key": "Network",
+            "Value": "Public"
+          },
+          {
+            "Key": "Name",
+            "Value": { "Ref": "AWS::StackName" }
+          }
+        ]
+      }
+    },
+    "PublicSubnet": {
+      "DependsOn": [
+        "VPC"
+      ],
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "CidrBlock": {
+          "Fn::FindInMap": [
+            "SubnetConfig",
+            "Public",
+            "CIDR"
+          ]
+        }
+      }
+    },
+    "InternetGateway": {
+      "Type": "AWS::EC2::InternetGateway"
+    },
+    "InternetGatewayAttachment": {
+      "DependsOn": [
+        "VPC",
+        "InternetGateway"
+      ],
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "InternetGatewayId": {
+          "Ref": "InternetGateway"
+        }
+      }
+    },
+    "PublicRouteTable": {
+      "DependsOn": [
+        "VPC"
+      ],
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": {
+              "Ref": "AWS::StackName"
+            }
+          },
+          {
+            "Key": "Network",
+            "Value": "Public"
+          }
+        ]
+      }
+    },
+    "PublicSubnetRouteTableAssociation": {
+      "DependsOn": [
+        "PublicSubnet",
+        "PublicRouteTable"
+      ],
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "PublicSubnet"
+        },
+        "RouteTableId": {
+          "Ref": "PublicRouteTable"
+        }
+      }
+    },
+    "PublicRoute": {
+      "DependsOn": [
+        "PublicRouteTable",
+        "InternetGateway"
+      ],
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "PublicRouteTable"
+        },
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": {
+          "Ref": "InternetGateway"
+        }
+      }
+    },
+    "PublicSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Enabling access to all IPs and all ports",
+        "SecurityGroupEgress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "FromPort": "0",
+            "IpProtocol": "tcp",
+            "ToPort": "65535"
+          },
+          {
+            "CidrIp": "0.0.0.0/0",
+            "FromPort": "0",
+            "IpProtocol": "udp",
+            "ToPort": "65535"
+          }
+        ],
+        "SecurityGroupIngress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "FromPort": "0",
+            "IpProtocol": "tcp",
+            "ToPort": "22"
+          },
+          {
+            "CidrIp": "0.0.0.0/0",
+            "FromPort": "0",
+            "IpProtocol": "tcp",
+            "ToPort": "80"
+          }
+        ],
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }
+    },
+    "PrivateSubnet": {
+      "DependsOn": [
+        "VPC"
+      ],
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "CidrBlock": {
+          "Fn::FindInMap": [
+            "SubnetConfig",
+            "Private",
+            "CIDR"
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": {
+              "Ref": "AWS::StackName"
+            }
+          },
+          {
+            "Key": "Network",
+            "Value": "Private"
+          },
+          {
+            "Key": "Name",
+            "Value": "Private Subnet"
+          }
+        ]
+      }
+    },
+    "NatIP": {
+      "DependsOn": [
+        "VPC",
+        "InternetGatewayAttachment"
+      ],
+      "Type": "AWS::EC2::EIP",
+      "Properties": {
+        "Domain": {
+          "Ref": "VPC"
+        }
+      }
+    },
+    "NatGateway": {
+      "DependsOn": [
+        "PublicSubnet"
+      ],
+      "Type": "AWS::EC2::NatGateway",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "PublicSubnet"
+        },
+        "AllocationId": {
+          "Fn::GetAtt": [
+            "NatIP",
+            "AllocationId"
+          ]
+        }
+      }
+    },
+    "PrivateRouteTable": {
+      "DependsOn": [
+        "VPC"
+      ],
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "Tags": [
+          {
+            "Key": "Application",
+            "Value": {
+              "Ref": "AWS::StackName"
+            }
+          },
+          {
+            "Key": "Network",
+            "Value": "Private"
+          }
+        ]
+      }
+    },
+    "PrivateSubnetRouteTableAssociation": {
+      "DependsOn": [
+        "PrivateSubnet",
+        "PrivateRouteTable"
+      ],
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "PrivateSubnet"
+        },
+        "RouteTableId": {
+          "Ref": "PrivateRouteTable"
+        }
+      }
+    },
+    "PrivateRoute": {
+      "DependsOn": [
+        "PrivateRouteTable",
+        "NatGateway"
+      ],
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "PrivateRouteTable"
+        },
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "NatGatewayId": {
+          "Ref": "NatGateway"
+        }
+      }
+    },
+    "PrivateSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Enabling access to all IPs and all ports",
+        "SecurityGroupEgress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "FromPort": "0",
+            "IpProtocol": "tcp",
+            "ToPort": "65535"
+          },
+          {
+            "CidrIp": "0.0.0.0/0",
+            "FromPort": "0",
+            "IpProtocol": "udp",
+            "ToPort": "65535"
+          }
+        ],
+        "SecurityGroupIngress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "FromPort": "0",
+            "IpProtocol": "tcp",
+            "ToPort": "22"
+          },
+          {
+            "CidrIp": "0.0.0.0/0",
+            "FromPort": "0",
+            "IpProtocol": "tcp",
+            "ToPort": "5000"
+          },
+          {
+            "CidrIp": "0.0.0.0/0",
+            "FromPort": "0",
+            "IpProtocol": "tcp",
+            "ToPort": "8500"
+          }
+        ],
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }
+    },
+    "DockerMachine": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "BlockDeviceMappings": [
+          {
+            "DeviceName": "/dev/xvda",
+            "Ebs": {
+              "DeleteOnTermination": "true",
+              "VolumeSize": 10
+            }
+          }
+        ],
+        "ImageId": {
+          "Ref": "CoreAmiId"
+        },
+        "InstanceType": {
+          "Ref": "DockerMachineInstanceType"
+        },
+        "KeyName": {
+          "Ref": "KeyName"
+        },
+        "NetworkInterfaces": [
+          {
+            "AssociatePublicIpAddress": "true",
+            "DeleteOnTermination": "true",
+            "DeviceIndex": "0",
+            "GroupSet": [
+              {
+                "Ref": "PublicSecurityGroup"
+              }
+            ],
+            "PrivateIpAddress": "10.44.0.100",
+            "SubnetId": {
+              "Ref": "PublicSubnet"
+            }
+          }
+        ],
+        "SourceDestCheck": "false",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "DockerMachine"
+          }
+        ],
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": [
+              "",
+              [
+                "#!/bin/bash\n",
+                "set -x\n",
+                "mkdir -p /home/ubuntu/.aws/\n",
+
+                "# Script which sets AWS CLI config\n",
+                "cat << EOF > /home/ubuntu/.aws/config\n",
+                "[default]\n",
+                "output = text\n",
+                "region = ",{"Ref": "AWS::Region" },"\n",
+                "EOF\n",
+
+                "# Script which sets AWS CLI credentials\n",
+                "cat << EOF > /home/ubuntu/.aws/credentials\n",
+                "[default]\n",
+                "aws_access_key_id = ",{"Ref": "AWSAccessKeyID"},"\n",
+                "aws_secret_access_key = ",{"Ref": "AWSSecretAccessKey"},"\n",
+                "EOF\n",
+
+                "cat << EOF > /etc/profile.d/env.sh\n",
+                "#!/bin/bash\n",
+                "#AWS variables\n",
+                "export HOME=/home/ubuntu\n",
+                "export STACK_NAME=",{"Ref": "AWS::StackName" },"\n",
+                "export AZ=$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone)\n",
+                "export EC2_REGION=",{"Ref": "AWS::Region" },"\n",
+                "export INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)\n",
+
+                "# Scalemail variables#\n",
+                "export CONSUL_INSTANCE_TYPE=",{"Ref": "ConsulInstanceType"},"\n",
+                "export REGISTRY_INSTANCE_TYPE=",{"Ref": "RegistryInstanceType"},"\n",
+                "export NGINX_INSTANCE_TYPE=",{"Ref": "NginxInstanceType"},"\n",
+                "export SWARM_MASTER_INSTANCE_TYPE=",{"Ref": "SwarmMasterInstanceType"},"\n",
+                "export SWARM_NODES=",{"Ref": "SwarmNodesAmount"},"\n",
+                "export SWARM_NODES_INSTANCE_TYPE=",{"Ref": "SwarmNodesInstanceType"},"\n",
+                "export APPLICATION_SCALE_IN_SWARM=",{"Ref": "AppInstances"},"\n",
+                "export DISTRIBUTION_URL=",{"Ref": "DistributionURL"},"\n",
+                "EOF\n",
+
+                "source /etc/profile.d/env.sh\n",
+
+                "cat << EOF >> /etc/profile.d/env.sh\n",
+                "# Adding more AWS variables, which are dependant on values above\n",
+                "export AVAILABILITY_ZONE=${AZ: -1}\n",
+                "export VPC_ID=$(aws ec2 describe-instances --instance-ids ${INSTANCE_ID} --query 'Reservations[0].Instances[0].VpcId' --output text)\n",
+                "EOF\n",
+
+                "#export scripturl=",{"Ref": "DeploymentScriptURL"},"\n",
+                "#curl -s $scripturl > /home/ubuntu/provision-tmp.sh\n",
+                "#sed -e '/#SUBSTITUTE_ME_WITH_EXPORTS#/ {' -e 'r /home/ubuntu/env' -e 'd' -e '}' /home/ubuntu/provision-tmp.sh > /home/ubuntu/provision.sh\n",
+                "#/bin/bash /home/ubuntu/provision.sh\n",
+                "#chown -R ubuntu:ubuntu /home/ubuntu/\n"
+              ]
+            ]
+          }
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "DockerMachinePublicIP": {
+      "Description": "Docker Machine Public IP",
+      "Value": {
+        "Fn::GetAtt": [
+          "DockerMachine",
+          "PublicIp"
+        ]
+      }
+    }
+  }
+}
