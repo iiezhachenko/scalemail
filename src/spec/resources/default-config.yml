@@ -1,0 +1,18 @@
+options:
+  driver: amazonec2
+  aws-credentials-profile: default
+hosts:
+  host:
+    host-type: generic
+    hosts-amount: 1
+    engine-install-url: http://test.com
+    engine-opts:
+      - opt1
+      - opt2
+    amazonec2-region: region
+    amazonec2-zone: zone
+    amazonec2-vpc-id: vpc
+    amazonec2-subnet-id: subnet
+    amazonec2-security-group: sg
+    amazonec2-instance-type: it
+    amazonec2-ami: ami

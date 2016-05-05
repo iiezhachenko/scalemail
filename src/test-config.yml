@@ -1,0 +1,41 @@
+options:
+  driver: amazonec2
+  aws-credentials-profile: default
+  host-name-prefix: &host-names-prefix <%= ENV["AWS_STACK_NAME"] %>
+driver-options: &amazonec2-driver-opts
+  amazonec2-region: &amazonec2-region <%= ENV["AWS_REGION"] %>
+  amazonec2-zone: &amazonec2-zone <%= ENV["AWS_AVAILABILITY_ZONE"] %>
+  amazonec2-vpc-id: &amazonec2-vpc-id <%= ENV["AWS_VPC_ID"] %>
+  amazonec2-subnet-id: &amazonec2-subnet-id <%= ENV["AWS_SUBNET_ID"] %>
+  amazonec2-security-group: &amazonec2-security-group <%= ENV["AWS_SECURITY_GROUP"] %>
+  amazonec2-instance-type: &amazonec2-instance-type <%= ENV["AWS_INSTANCE_TYPE"] %>
+  amazonec2-ami: &amazonec2-ami <%= ENV["AWS_AMI"] %>
+hosts:
+  consul:
+    host-type: generic
+    hosts-amount: 1
+    <<: *amazonec2-driver-opts
+    synchronous: true
+    commands-to-execute:
+      - sudo docker run -d -p "8500:8500" -h "consul" --name "consul" progrium/consul -server -bootstrap
+      - sudo netstat -nap | grep 8500
+  swarm-master:
+      host-type: swarm-master
+      hosts-amount: 1
+      swarm-discovery: consul://$host_ip$:8500
+      engine-opts:
+        - cluster-store=consul://$host_ip$:8500
+        - cluster-advertise=eth0:2376
+      <<: *amazonec2-driver-opts
+      placeholders:
+        host_ip: consul
+  swarm-node:
+        host-type: swarm-node
+        hosts-amount: 2
+        swarm-discovery: consul://$host_ip$:8500
+        engine-opts:
+          - cluster-store=consul://$host_ip$:8500
+          - cluster-advertise=eth0:2376
+        <<: *amazonec2-driver-opts
+        placeholders:
+          host_ip: consul

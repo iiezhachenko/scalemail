@@ -1,0 +1,62 @@
+options:
+  driver: amazonec2
+  aws-credentials-profile: default
+hosts:
+  generic-host:
+    host-type: generic
+    hosts-amount: 1
+    engine-install-url: http://test.com
+    engine-opts:
+      - opt1
+      - opt2
+    amazonec2-region: region
+    amazonec2-zone: zone
+    amazonec2-vpc-id: vpc
+    amazonec2-subnet-id: subnet
+    amazonec2-security-group: sg
+    amazonec2-instance-type: it
+
+  swarm-node:
+    host-type: swarm-node
+    hosts-amount: 1
+    engine-install-url: http://test.com
+    engine-opts:
+      - opt1
+      - opt2
+    swarm-discovery: something_somewhere
+    amazonec2-region: region
+    amazonec2-zone: zone
+    amazonec2-vpc-id: vpc
+    amazonec2-subnet-id: subnet
+    amazonec2-security-group: sg
+    amazonec2-instance-type: it
+
+  swarm-node-multiple:
+    host-type: swarm-node
+    hosts-amount: 3
+    engine-install-url: http://test.com
+    engine-opts:
+      - opt1
+      - opt2
+    swarm-discovery: something_somewhere
+    amazonec2-region: region
+    amazonec2-zone: zone
+    amazonec2-vpc-id: vpc
+    amazonec2-subnet-id: subnet
+    amazonec2-security-group: sg
+    amazonec2-instance-type: it
+
+  swarm-master:
+    host-type: swarm-master
+    hosts-amount: 1
+    engine-install-url: http://test.com
+    engine-opts:
+      - opt1
+      - opt2
+    swarm-discovery: something_somewhere
+    amazonec2-region: region
+    amazonec2-zone: zone
+    amazonec2-vpc-id: vpc
+    amazonec2-subnet-id: subnet
+    amazonec2-security-group: sg
+    amazonec2-instance-type: it
