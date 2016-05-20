@@ -16,13 +16,13 @@ describe Scalemail do
     $stdout = STDOUT
     $stderr = STDERR
   end
-  it 'should show help when started without arguments' do
+  it 'shows help when started without arguments' do
     expect { Scalemail.new([]) }.to raise_error(SystemExit, @banner)
   end
-  it 'should show help when started with "-h" argument' do
+  it 'shows help when started with "-h" argument' do
     expect { Scalemail.new(%w(-h)) }.to raise_error(SystemExit, @banner)
   end
-  it 'should show help when started with "--help" argument' do
+  it 'shows help when started with "--help" argument' do
     expect { Scalemail.new(%w(--help)) }.to raise_error(SystemExit, @banner)
   end
 end
