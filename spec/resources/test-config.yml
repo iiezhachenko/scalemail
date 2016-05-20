@@ -1,14 +1,16 @@
 options:
-  driver: amazonec2
-  aws-credentials-profile: default
+  #aws-credentials-profile: default
+  hosts-name-prefix: prefix
 hosts:
   host:
+    driver: amazonec2
     host-type: generic
     hosts-amount: 1
-    engine-install-url: http://test.com
     engine-opts:
       - opt1
       - opt2
+    commands-to-execute:
+      - ls
     amazonec2-region: region
     amazonec2-zone: zone
     amazonec2-vpc-id: vpc
