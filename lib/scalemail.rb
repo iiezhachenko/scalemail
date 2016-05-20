@@ -10,11 +10,7 @@ class Scalemail
     parse_options args
   end
 
-  def parse_options(args)
-    args << '-h' if args.empty?
-    parser = prepare_parser { |opts| read_dm_cfg_arg opts }
-    parser.parse! args
-  end
+  private
 
   def prepare_parser
     OptionParser.new do |opts|
@@ -24,12 +20,16 @@ class Scalemail
     end
   end
 
-  private
-
   def read_dm_cfg_arg(opts)
     opts.on('-m', '--docker-machine-config FILE',
             'Docker Machine config file to load') \
            { |cfile| @options.docker_machine_config_file = cfile }
+  end
+
+  def parse_options(args)
+    args << '-h' if args.empty?
+    parser = prepare_parser { |opts| read_dm_cfg_arg opts }
+    parser.parse! args
   end
 
   class << self
