@@ -2,12 +2,6 @@
 class Property
   attr_reader :name, :value
 
-  private
-
-  attr_writer :value
-
-  public
-
   def initialize(name, value)
     @name = name
     @value = value
@@ -18,11 +12,13 @@ class Property
     super
   end
 
+  private
+
+  attr_writer :value
+
   def validate
-    self.value ||= ''
     raise 'Property name should be String' unless name.is_a? String
     raise "Property name can't be empty" if name.empty?
-    raise "Property value can't be empty" if value.empty?
   end
 end
 
@@ -32,14 +28,17 @@ class StringProperty < Property
     super name, value
   end
 
-  def validate
-    super
-    raise 'Property value should be String' unless value.is_a? String
-  end
-
   def to_s
     validate
     "--#{name} #{value}"
+  end
+
+  private
+
+  def validate
+    super
+    raise "Property value can't be empty" if value.empty?
+    raise 'Property value should be String' unless value.is_a? String
   end
 end
 
@@ -50,11 +49,19 @@ class BoolProperty < Property
   end
 
   def to_s
+    validate
     if name
       "--#{name} #{value}"
     else
       ''
     end
+  end
+
+  private
+
+  def validate
+    super
+    raise 'Property value should be Boolean' unless [true, false].include? value
   end
 end
 
