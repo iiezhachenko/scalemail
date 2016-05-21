@@ -1,5 +1,12 @@
+# Base class for property types
 class Property
   attr_reader :name, :value
+
+  private
+
+  attr_writer :value
+
+  public
 
   def initialize(name, value)
     @name = name
@@ -12,12 +19,14 @@ class Property
   end
 
   def validate
+    self.value ||= ''
     raise 'Property name should be String' unless name.is_a? String
     raise "Property name can't be empty" if name.empty?
-    raise "Property value can't be nil" if value.nil?
+    raise "Property value can't be empty" if value.empty?
   end
 end
 
+# Represents String property type, extends Property class
 class StringProperty < Property
   def iniitialize(name, value)
     super name, value
@@ -29,10 +38,12 @@ class StringProperty < Property
   end
 
   def to_s
+    validate
     "--#{name} #{value}"
   end
 end
 
+# Represents Boolean property type, extends Property class
 class BoolProperty < Property
   def iniitialize(name, value)
     super name, value
@@ -47,6 +58,7 @@ class BoolProperty < Property
   end
 end
 
+# Represents Array property type, extends Property class
 class ArrayProperty < Property
   def iniitialize(name, value)
     super name, value
