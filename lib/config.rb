@@ -9,7 +9,7 @@ class Property
 
   def to_s
     validate
-    super
+    'This is a generic class. Use specialized child instead'
   end
 
   private
@@ -50,8 +50,8 @@ class BoolProperty < Property
 
   def to_s
     validate
-    if name
-      "--#{name} #{value}"
+    if value
+      "--#{name}"
     else
       ''
     end
