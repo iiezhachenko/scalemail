@@ -13,10 +13,10 @@ def test_to_s(expected_msg)
   end
 end
 
-shared_examples_for 'Property' do |factory, expd_to_s|
+shared_examples_for 'Property' do |factory|
   let(:fixture) { build factory }
   context '#new' do
-    it 'builds object when given both args' do
+    it 'builds object when given name and value' do
       name = fixture.name
       value = fixture.value
       prop = subject.new name, value
@@ -44,7 +44,7 @@ shared_examples_for "value can't be empty" do |factory, value|
 end
 
 shared_examples_for 'test #to_s string' do |msg|
-  context '#to_s when attributes are valid' do
+  context 'attributes are valid' do
     test_to_s msg
   end
 end
@@ -73,7 +73,7 @@ end
 
 describe BoolProperty do
   subject { BoolProperty }
-  it_behaves_like 'Property', :bool_property, '--name'
+  it_behaves_like 'Property', :bool_property
   context '#to_s' do
     context 'value not Boolean' do
       let(:fixture) { build(:bool_property, value: [1, 2]) }
@@ -87,5 +87,19 @@ describe BoolProperty do
       let(:fixture) { build(:bool_property, value: false) }
       include_examples 'test #to_s string', ''
     end
+  end
+end
+
+describe ArrayProperty do
+  subject { ArrayProperty }
+  it_behaves_like 'Property', :array_property
+  context '#to_s' do
+    include_examples "value can't be empty", :array_property, []
+    context 'value not Array' do
+      let(:fixture) { build(:array_property, value: 'string') }
+      raise_test 'value', 'should be Array'
+    end
+    let(:fixture) { build(:array_property, value: [1, 2]) }
+    include_examples 'test #to_s string', '--name=1 --name=2'
   end
 end

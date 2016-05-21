@@ -72,8 +72,19 @@ class ArrayProperty < Property
   end
 
   def to_s
+    validate
+    str = []
     value.each do |item|
-      "--#{name}=#{item}"
+      str.push "--#{name}=#{item}"
     end
+    str.join ' '
+  end
+
+  private
+
+  def validate
+    super
+    raise "Property value can't be empty" if value.empty?
+    raise 'Property value should be Array' unless value.is_a? Array
   end
 end

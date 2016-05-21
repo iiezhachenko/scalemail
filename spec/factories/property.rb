@@ -19,4 +19,11 @@ FactoryGirl.define do
 
     initialize_with { new name, value }
   end
+
+  factory :array_property, class: ArrayProperty do
+    name 'name'
+    value %w(one two)
+
+    initialize_with { new name, value }
+  end
 end
