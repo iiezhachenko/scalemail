@@ -2,7 +2,6 @@
 participant User
 participant Scalemail
 participant Config
-participant ConfigFile
 participant HostsFactory
 participant Provisioner
 participant HostCreator
@@ -18,9 +17,8 @@ activate Scalemail
 
   activate Config
     Config -> Config: load_cfg_file(cfg_file)
-    Config -> ConfigFile: hosts
-    activate ConfigFile
-      ConfigFile -> HostsFactory: host(host_hash, options_hash)
+      Config -> HostsFactory: host(host_hash, options_hash)
+      note over Config: for each host node\n in config file
       activate HostsFactory
         HostsFactory -> HostsFactory: process_options
         HostsFactory -> Host: new(attributes_hash, name)
@@ -38,10 +36,8 @@ activate Scalemail
           deactivate AttributesFactory
           Host --> HostsFactory
         deactivate Host
-        HostsFactory --> ConfigFile
+        HostsFactory --> Config
       deactivate HostsFactory
-      ConfigFile --> Config
-    deactivate ConfigFile
     Config --> Scalemail
   deactivate Config
 
