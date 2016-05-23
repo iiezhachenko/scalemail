@@ -1,0 +1,49 @@
+@startuml
+User -> Scalemail: new(ARGS)
+activate Scalemail
+  Scalemail -> Config: hosts(cfg_file)
+
+  activate Config
+    Config -> Config: load_cfg_file(cfg_file)
+    Config -> ConfigFile: hosts
+    activate ConfigFile
+      ConfigFile -> HostsFactory: host(host_hash, options)
+      activate HostsFactory
+        HostsFactory -> HostsFactory: process_options
+        HostsFactory -> Host: new(host_hash)
+        activate Host
+          Host -> Host: define_host_type - swarm master or node?
+          Host -> Host: verify host core attributes
+          Host ->Host: verify host driver attributes
+          Host -> Host: verify host swarm attribute
+          Host -> Host: build host name
+          Host --> HostsFactory
+        deactivate Host
+      deactivate HostsFactory
+      ConfigFile --> Config
+    deactivate ConfigFile
+    Config --> Scalemail
+  deactivate Config
+
+  Scalemail -> Provisioner: provision(hosts)
+
+  activate Provisioner
+    Provisioner -> HostCreator: create(host)
+    note over Provisioner: for each host
+    activate HostCreator 
+      HostCreator -> Host: creation_string
+      activate Host
+        Host --> HostCreator
+        HostCreator -> Host: sync?
+        Host --> HostCreator
+      deactivate Host
+      HostCreator -> HostCreator: create (sync or async)
+      HostCreator --> Provisioner: Future
+    deactivate HostCreator
+    Provisioner -> Provisioner: wait_for_hosts
+    Provisioner --> Scalemail
+  deactivate Provisioner
+
+  Scalemail --> User
+deactivate Scalemail
+@enduml
