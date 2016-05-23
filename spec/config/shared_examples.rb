@@ -1,7 +1,7 @@
 def raise_test(test_obj, err, exception = RuntimeError)
   it "throws #{exception}" do
     expect { fixture.to_s }.to \
-      raise_error(exception, "Property #{test_obj} #{err}")
+      raise_error(exception, "Attribute #{test_obj} #{err}")
   end
 end
 
@@ -11,7 +11,7 @@ def test_to_s(expected_msg)
   end
 end
 
-shared_examples_for 'Property' do |factory|
+shared_examples_for 'Attribute' do |factory|
   let(:fixture) { build factory }
   context '#new' do
     it 'builds object when given name and value' do
