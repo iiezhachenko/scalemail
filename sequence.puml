@@ -1,4 +1,17 @@
 @startuml
+participant User
+participant Scalemail
+participant Config
+participant ConfigFile
+participant HostsFactory
+participant Provisioner
+participant HostCreator
+participant Host
+participant AttributesFactory
+participant AttributesCatalogue
+participant Attributes
+participant Attribute
+
 User -> Scalemail: new(ARGS)
 activate Scalemail
   Scalemail -> Config: hosts(cfg_file)
@@ -7,18 +20,25 @@ activate Scalemail
     Config -> Config: load_cfg_file(cfg_file)
     Config -> ConfigFile: hosts
     activate ConfigFile
-      ConfigFile -> HostsFactory: host(host_hash, options)
+      ConfigFile -> HostsFactory: host(host_hash, options_hash)
       activate HostsFactory
         HostsFactory -> HostsFactory: process_options
-        HostsFactory -> Host: new(host_hash)
+        HostsFactory -> Host: new(attributes_hash, name)
         activate Host
-          Host -> Host: define_host_type - swarm master or node?
-          Host -> Host: verify host core attributes
-          Host ->Host: verify host driver attributes
-          Host -> Host: verify host swarm attribute
-          Host -> Host: build host name
+          Host -> AttributesFactory: build(attributes_hash, host_type, driver)
+          activate AttributesFactory
+            AttributesFactory -> AttributesCatalogue: attribute_records
+            activate AttributesCatalogue
+              AttributesCatalogue --> AttributesFactory
+            deactivate AttributesCatalogue
+            note over AttributesFactory: for each attribute_record
+            AttributesFactory -> AttributesFactory: attribute_hash
+            AttributesFactory -> AttributesFactory: create_attribute(attribute_hash)
+            AttributesFactory --> Host
+          deactivate AttributesFactory
           Host --> HostsFactory
         deactivate Host
+        HostsFactory --> ConfigFile
       deactivate HostsFactory
       ConfigFile --> Config
     deactivate ConfigFile
@@ -33,6 +53,16 @@ activate Scalemail
     activate HostCreator 
       HostCreator -> Host: creation_string
       activate Host
+        Host -> Attributes: options_string
+        activate Attributes
+          note over Attributes: for each option
+          Attributes -> Attribute: to_s
+          activate Attribute
+            Attribute -> Attribute: validate
+            Attribute --> Attributes
+          deactivate Attribute
+          Attributes --> Host
+        deactivate Attributes
         Host --> HostCreator
         HostCreator -> Host: sync?
         Host --> HostCreator
@@ -43,7 +73,6 @@ activate Scalemail
     Provisioner -> Provisioner: wait_for_hosts
     Provisioner --> Scalemail
   deactivate Provisioner
-
   Scalemail --> User
 deactivate Scalemail
 @enduml
