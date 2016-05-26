@@ -1,7 +1,5 @@
-Feature: My bootstrapped app kinda works
-  In order to get going on coding my awesome app
-  I want to have aruba and cucumber setup
-  So I don't have to do it myself
+Feature: As a User I want to get application usage information if not 
+  arguments provided, so I know, how to use it.
 
   Scenario: App just runs
     When I get help for "scalemail"

@@ -30,14 +30,14 @@ class App
   # Or, just call OptionParser methods on opts
   #
   # Require an argument
-  # arg :some_arg 
+  # arg :some_arg
   #
   # # Make an argument optional
   # arg :optional_arg, :optional
 
   version Scalemail::VERSION
 
-  use_log_level_option :toggle_debug_on_signal => 'USR1'
+  use_log_level_option toggle_debug_on_signal: 'USR1'
 
   go!
 end
