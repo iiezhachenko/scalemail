@@ -9,10 +9,10 @@ class App
   include Methadone::Main
   include Methadone::CLILogging
 
-  main do # Add args you want: |like,so|
-    # your program code here
-    # You can access CLI options via
-    # the options Hash
+  main do
+    hosts = Config.instance.hosts options[:dmachine_config]
+    prov = Provisioner.instance
+    prov.provision hosts
   end
 
   # supplemental methods here
@@ -36,7 +36,7 @@ class App
   # # Make an argument optional
   # arg :optional_arg, :optional
 
-  on('-m FILE', '--dmachine-config FILE',
+  on('-m FILE', '--dmachine_config FILE',
      'Configuration file with Docker Machine infra description')
 
   version Scalemail::VERSION

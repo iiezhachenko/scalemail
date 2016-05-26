@@ -10,7 +10,7 @@ Feature: Show help banner
     And the banner should document that this app takes options
     And the following options should be documented:
       |-m|
-      |--dmachine-config|
+      |--dmachine_config|
       |-h|
       |--help|
       |--version|
