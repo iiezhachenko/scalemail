@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
 
   spec.summary = 'Docker Machine infrastructure management application'
   spec.description = 'CLI application which allows to create Docker Machine
-    infrastructure in declarative way throug simple YAML config file.'
+    infrastructure in declarative way through simple YAML config file.'
   spec.homepage = 'https://github.com/iiezhachenko/scalemail'
 
   # Prevent pushing this gem to RubyGems.org.
@@ -37,6 +37,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rake', '~> 10.0'
   spec.add_development_dependency('rdoc')
   spec.add_development_dependency('aruba')
+  spec.add_development_dependency('pry')
   spec.add_dependency('methadone', '~> 1.9.2')
   spec.add_development_dependency('test-unit')
   spec.add_development_dependency('rspec', '~> 3')

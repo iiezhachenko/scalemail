@@ -2,8 +2,9 @@
 
 require 'optparse'
 require 'methadone'
-require 'scalemail.rb'
+require_relative '../lib/scalemail'
 
+# Application entry point
 class App
   include Methadone::Main
   include Methadone::CLILogging
@@ -34,6 +35,9 @@ class App
   #
   # # Make an argument optional
   # arg :optional_arg, :optional
+
+  on('-m FILE', '--dmachine-config FILE',
+     'Configuration file with Docker Machine infra description')
 
   version Scalemail::VERSION
 
