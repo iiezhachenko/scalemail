@@ -3,7 +3,8 @@ require 'methadone/cucumber'
 
 path = File.expand_path(File.dirname(__FILE__) + '/../../bin')
 ENV['PATH'] = "#{path}#{File::PATH_SEPARATOR}#{ENV['PATH']}"
-LIB_DIR = File.join(File.expand_path(File.dirname(__FILE__)), '..', '..', 'lib')
+current_folder = File.expand_path(File.dirname(__FILE__))
+LIB_DIR ||= File.join(current_folder, '..', '..', 'lib')
 
 Before do
   # Using "announce" causes massive warnings on 1.9.2

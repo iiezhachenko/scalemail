@@ -36,8 +36,10 @@ class App
   # # Make an argument optional
   # arg :optional_arg, :optional
 
-  on('-m FILE', '--dmachine_config FILE',
-     'Configuration file with Docker Machine infra description')
+  opts.on('-m FILE', '--docker-machine-config FILE',
+          'Configuration file with Docker Machine hosts description') do |file|
+    options[:dm_config] = file
+  end
 
   version Scalemail::VERSION
 
