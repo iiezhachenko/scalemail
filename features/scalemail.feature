@@ -20,4 +20,4 @@ Feature: Show help banner
   Scenario: I provide Docker Machine config file, which cannot be read
     When I run `scalemail --docker-machine-config fakefile`
     Then the exit status should not be 0
-    And the output should contain "Can't open Docker Machine configuration file"
+    And the output should contain "Can't load Docker Machine configuration file"
