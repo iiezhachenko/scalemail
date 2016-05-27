@@ -1,5 +1,8 @@
 require 'aruba/cucumber'
 require 'methadone/cucumber'
+require 'simplecov'
+
+SimpleCov.command_name 'features'
 
 path = File.expand_path(File.dirname(__FILE__) + '/../../bin')
 ENV['PATH'] = "#{path}#{File::PATH_SEPARATOR}#{ENV['PATH']}"
