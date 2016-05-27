@@ -1,18 +1,29 @@
 #!/usr/bin/env ruby
 
+# It shouldn't be here, but SimpleCov doesn't work with Aruba otherwise
+if ENV['COVERAGE']
+  require 'simplecov'
+  puts SimpleCov.root
+  SimpleCov.start do
+    # add_filter 'features/'
+    # add_filter 'spec/'
+    # add_filter 'tmp/'
+    root(File.join(File.expand_path(File.dirname(__FILE__)), '..'))
+    track_files 'bin/scalemail'
+    command_name ARGV.join ' '
+  end
+end
+
 require 'optparse'
 require 'methadone'
 require_relative '../lib/scalemail'
 
-# Application entry point
 class App
   include Methadone::Main
   include Methadone::CLILogging
 
   main do
-    hosts = Config.instance.hosts options[:dmachine_config]
-    prov = Provisioner.instance
-    prov.provision hosts
+    Scalemail::Main.new.provision options[:dm_config]
   end
 
   # supplemental methods here
