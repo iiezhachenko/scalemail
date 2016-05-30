@@ -30,7 +30,7 @@ flag [:m, 'docker-machine-config'], type: String,
 desc 'Print Docker Machine commands to be executed'
 command :plan do |c|
   c.action do |global_options, option, args|
-
+    Scalemail::Main.new.print_docker_machine_plan global_options[:m]
   end
 end
 

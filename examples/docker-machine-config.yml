@@ -1,0 +1,41 @@
+amazonec2-attributes: &amazonec2-attributes
+    amazonec2-region: test-region
+    amazonec2-zone: test-zone
+    amazonec2-vpc-id: test-vpc
+    amazonec2-subnet-id: test-subnet
+    amazonec2-security-group: test-security-group
+    amazonec2-instance-type: test-instance-type
+    amazonec2-ami: test-ami
+    amazonec2-private-address-only: true
+options:
+  hosts-name-prefix: Test
+hosts:
+  Consul:
+    options:
+      host-type: generic
+      hosts-amount: 1
+    attributes:
+      <<: *amazonec2-attributes
+      driver: amazonec2
+  Swarm-Master:
+    options:
+      host-type: swarm-master
+      hosts-amount: 1
+    attributes:
+      driver: amazonec2
+      engine-opts:
+        - cluster-store=consul://test-consul:8500
+        - cluster-advertise=eth0:2376
+      <<: *amazonec2-attributes
+      swarm-discovery:  consul://test-consul:8500 
+  Swarm-Node:
+    options:
+      host-type: swarm-node
+      hosts-amount: 2
+    attributes:
+      driver: amazonec2
+      engine-opts:
+        - cluster-store=consul://test-consul:8500
+        - cluster-advertise=eth0:2376
+      <<: *amazonec2-attributes
+      swarm-discovery:  consul://test-consul:8500 
