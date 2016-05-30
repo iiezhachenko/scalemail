@@ -5,56 +5,33 @@ if ENV['COVERAGE']
   require 'simplecov'
   puts SimpleCov.root
   SimpleCov.start do
-    # add_filter 'features/'
-    # add_filter 'spec/'
-    # add_filter 'tmp/'
     root(File.join(File.expand_path(File.dirname(__FILE__)), '..'))
     track_files 'bin/scalemail'
     command_name ARGV.join ' '
   end
 end
 
-require 'optparse'
-require 'methadone'
+require 'gli'
 require_relative '../lib/scalemail'
 
-class App
-  include Methadone::Main
-  include Methadone::CLILogging
+include GLI::App
 
-  main do
-    Scalemail::Main.new.provision options[:dm_config]
+program_desc 'Application scaling toolkit'
+version Scalemail::VERSION
+
+subcommand_option_handling :normal
+synopsis_format :compact
+
+desc 'YAML file with Docker Machine hosts description'
+arg_name 'FILE'
+flag [:m, 'docker-machine-config'], type: String,
+                                    default_value: './docker-machine-config.yml'
+
+desc 'Print Docker Machine commands to be executed'
+command :plan do |c|
+  c.action do |global_options, option, args|
+
   end
-
-  # supplemental methods here
-
-  # Declare command-line interface here
-
-  # description "one line description of your app"
-  #
-  # Accept flags via:
-  # on("--flag VAL","Some flag")
-  # options[flag] will contain VAL
-  #
-  # Specify switches via:
-  # on("--[no-]switch","Some switch")
-  #
-  # Or, just call OptionParser methods on opts
-  #
-  # Require an argument
-  # arg :some_arg
-  #
-  # # Make an argument optional
-  # arg :optional_arg, :optional
-
-  opts.on('-m FILE', '--docker-machine-config FILE',
-          'Configuration file with Docker Machine hosts description') do |file|
-    options[:dm_config] = file
-  end
-
-  version Scalemail::VERSION
-
-  use_log_level_option toggle_debug_on_signal: 'USR1'
-
-  go!
 end
+
+exit run(ARGV)
